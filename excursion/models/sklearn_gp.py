@@ -18,6 +18,9 @@ class SKLearnGP(ExcursionModel, sklearn.gaussian_process.GaussianProcessRegresso
         super(SKLearnGP, self).__init__(kernel=kernel,  **self.gp_params)
 
         self.epsilon = 0.0
+        self.kernel_type = kernel_type
+        self.ndim = ndim
+        self.alpha = alpha
 
     def update_model(self, x, y):
         """
