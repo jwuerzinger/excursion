@@ -37,7 +37,7 @@ def plot_1D(acq, train_y, train_X, plot_X, plot_G, rangedef, pred_mean, pred_cov
         fig_ax1 = fig.add_subplot(gs[0, :])
 
     fig_ax1.plot(plot_X, true_y, linestyle="dashed", color='k', label='True Function')
-
+    
     min_X = np.min(plot_X)
     max_X = np.max(plot_X)
     fig_ax1.hlines(thresholds, min_X, max_X, colors="purple", label="threshold")
@@ -53,8 +53,8 @@ def plot_1D(acq, train_y, train_X, plot_X, plot_G, rangedef, pred_mean, pred_cov
     for x in train_X:
         fig_ax1.axvline(x, alpha=0.2, color="grey")
 
-    if next_x:
-        fig_ax1.axvline(next_x, c="red", label="new evaluation")
+    if next_x is not None:
+        for x_i in next_x: fig_ax1.axvline(x_i, c="red", label="new evaluation")
     fig_ax1.plot(plot_X, pred_mean, color="blue", label="mean")
 
     # variance
@@ -87,7 +87,7 @@ def plot_1D(acq, train_y, train_X, plot_X, plot_G, rangedef, pred_mean, pred_cov
         fig_ax2.set_xlabel("x")
         fig_ax2.set_ylabel("acq(x)")
         # fig_ax2.set_yscale("log")
-        fig_ax2.axvline(next_x, c="red")
+        for x_i in next_x: fig_ax2.axvline(x_i, c="red")
         fig_ax2.legend(loc="lower right")
         fig_ax2.set_xlim(*rangedef[0][:2])
 
