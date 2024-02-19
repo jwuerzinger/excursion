@@ -1,5 +1,7 @@
 import numpy as np
 from scipy.stats import norm
+import warnings
+warnings.filterwarnings('ignore')
 
 
 def mesh2points(grid, npoints_tuple):

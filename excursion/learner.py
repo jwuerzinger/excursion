@@ -49,19 +49,20 @@ class Learner(_Learner):
                                        fit_optimizer=self.options['model']['fit_optimizer'],
                                        base_model_kwargs=self.options['likelihood'], dtype=self.options['dtype'])
 
-    def ask(self, npoints: int = None):
+    def ask(self, n_points: int = 1):
         """
         Suggest a new point to evaluate.
         Parameters
         ----------
-        npoints : int, default: None
+        npoints : int, default: 1
             Determine how many points to ask for batch acquisition.
         Returns
         -------
         points : object
             Some kind of array object e.g. torch.Tensor or numpy.ndarray
         """
-        return self.optimizer.ask()
+
+        return self.optimizer.ask(n_points=n_points)
 
     def tell(self, x, y, fit=True):
         return self.optimizer.tell(x, y, fit=fit)
@@ -73,9 +74,9 @@ class Learner(_Learner):
         y = self.evaluate(x)
         return self.tell(x, y, fit=fit)
 
-    def run(self, n_iterations, plot_result=False, show_confusion_matrix=False):
+    def run(self, n_iterations, n_points=1, plot_result=False, show_confusion_matrix=False):
         for iter in range(n_iterations):
-            result = self.evaluate_and_tell(self.ask())
+            result = self.evaluate_and_tell(self.ask(n_points=n_points))
             if plot_result: plot(result, show_confusion_matrix)
 
     def evaluate_metrics(self):

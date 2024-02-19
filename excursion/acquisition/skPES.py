@@ -9,7 +9,7 @@ class SKPES(AcquisitionFunction):
         self.batch = batch
         self.acq_vals = None
 
-    def acquire(self, gp, thresholds, X_pointsgrid):
+    def acquire(self, gp, thresholds, X_pointsgrid, n_points: int = 1):
         """
         Calculates information gain of choosing x_candidate as next point to evaluate.
         Performs this calculation with the Predictive Entropy Search approximation. Roughly,
@@ -22,9 +22,13 @@ class SKPES(AcquisitionFunction):
 
         X_train = gp.X_train_.tolist()
         for i, cacq in enumerate(X_pointsgrid[np.argsort(self.acq_vals)]):
+            if i == 0: newxs = np.empty((0,len(cacq.tolist())))
+            if i >= n_points: return newxs
             if cacq.tolist() not in X_train:
-                newx = cacq
-                return newx
+                # newx = cacq
+                # return newx
+                newxs = np.vstack((newxs, cacq))
+                
 
     def _acquire(self, gp, thresholds, X_pointsgrid):
         try:

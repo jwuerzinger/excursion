@@ -214,6 +214,8 @@ class Optimizer(_Optimizer):
         """
         if n_points is None:
             return self._ask()
+        elif isinstance(n_points, int):
+            return self._ask(n_points=n_points)
 
         if not (isinstance(n_points, int) and n_points > 0):
             raise ValueError("Expected 'n_points' is an int > 0, got %s with type %s" %
@@ -221,36 +223,34 @@ class Optimizer(_Optimizer):
 
         return []
 
-    def _ask(self):
+    def _ask(self, n_points=1):
         """Suggest next point at which to evaluate the objective.
         Return a random point while not at least `n_initial_points`
         observations have been `tell`ed, after that `base_model` is used
         to determine the next point.
         """
-
         # after being "told" n_initial_points we switch from sampling
         # random points to using a surrogate model in update_next()
         if self._n_initial_points > 0 or self.base_model is None:
             if self._initial_samples is None:
                 # Not sure I can ever get to this piece of code
-                return self._point_sampler.generate(1, self._search_space['X_pointsgrid'])
+                return self._point_sampler.generate(n_points, self._search_space['X_pointsgrid'])
             else:
                 # The samples are evaluated starting form initial_samples[0]
                 return self._initial_samples[
-                    len(self._initial_samples) - self._n_initial_points].reshape(1, self._search_space['ndim'])
+                    len(self._initial_samples) - self._n_initial_points].reshape(n_points, self._search_space['ndim'])
 
         else:
-
-            if not hasattr(self, '_next_x'):
-                self.update_next()  # Should only happen on the first call, after which _next_x should always be set.
+            if not hasattr(self, '_next_x'): # Do we need this?!
+                self.update_next(n_points=n_points)  # Should only happen on the first call, after which _next_x should always be set.
 
             # Currently being found in acquisition, however, should use _next_xs and find _next_x here
             # in later refactor.
-            next_x = self._next_x
-
+            # next_x = self._next_x
+            next_xs = self.next_xs_
 
             # return point computed from last call to tell()
-            return next_x
+            return next_xs
 
     def tell(self, x, y, fit=True) -> ExcursionResult:
         """Record an observation (or several) of the objective function.
@@ -302,19 +302,20 @@ class Optimizer(_Optimizer):
         if self.base_model is not None:
             self._model.fit_model(self.fit_optimizer)
 
-    def update_next(self):
-        """Updates the value returned by opt.ask(). Does so by calling the acquisition func. Useful if a parameter
+    def update_next(self, n_points: int = 1):
+        """Updates the value returned by opt.ask(n_points). Does so by calling the acquisition func n_points times. Useful if a parameter
         was updated after ask was called."""
         # self.cache_ = {}
         # Ask for a new next_x.
-
         if self._n_initial_points <= 0:
             self.next_xs_ = []
-            next_x = self.acq_func.acquire(self._model, self._search_space['thresholds'],
-                                           self._search_space['X_pointsgrid'])
-            self.next_xs_.append(next_x)
+            # next_x = self.acq_func.acquire(self._model, self._search_space['thresholds'],
+            #                                self._search_space['X_pointsgrid'], n_points=n_points)
+            next_xs = self.acq_func.acquire(self._model, self._search_space['thresholds'],
+                                           self._search_space['X_pointsgrid'], n_points=n_points)
+            self.next_xs_ = next_xs
             # # Placeholder until I do batch acq functions
-            self._next_x = self.next_xs_[0].reshape(1, self._search_space['ndim'])
+            # self._next_x = self.next_xs_[0].reshape(1, self._search_space['ndim'])
 
     def get_result(self):
         """Returns the most recent result as a new object. self.result stores the log if log = true.
